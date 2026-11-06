@@ -1,0 +1,1 @@
+{"name": "Lake Painters Field Estimator", "short_name": "Lake Painters", "start_url": "./index.html", "display": "standalone", "background_color": "#fff8eb", "theme_color": "#083b59", "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]}
