@@ -13,6 +13,8 @@ const empty=()=>({customer:'',phone:'',email:'',address:'',gateCode:'',doorCode:
 let d;try{d=JSON.parse(localStorage.getItem('lp-v1'))||empty()}catch{d=empty()}
 if(!Array.isArray(d.sundries))d.sundries=[];
 if(!Array.isArray(d.equipment))d.equipment=[];
+if(d.deckSpindleMinutes===undefined)d.deckSpindleMinutes=3;
+if(d.deckRailRate===undefined)d.deckRailRate=0;
 if(d.roofEdgeDifficulty===undefined)d.roofEdgeDifficulty=1.25;
 // One-time migration of the old unpriced zeros to conservative two-coat starting assumptions.
 try{if(!localStorage.getItem('lp-exterior-rates-v1')){const defaults={soffitRate:30,fasciaSqftRate:25,gutterRate:30,gutterSqftRate:18,shutterRate:20,columnRate:20,porchRate:30,railingRate:20,garageDoorRate:50};for(const [k,v] of Object.entries(defaults)){if(!(Number(d[k])>0))d[k]=v}localStorage.setItem('lp-exterior-rates-v1','1');localStorage.setItem('lp-v1',JSON.stringify(d));}}catch(e){}
