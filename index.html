@@ -12,6 +12,7 @@ let step=0;
 const empty=()=>({customer:'',phone:'',email:'',address:'',gateCode:'',doorCode:'',project:'Interior',route:'Top floor to basement, front to back',rooms:[],repairs:[],notes:'',photos:[],laborRate:90,wallRate:100,soffitRate:0,fasciaRate:0,fasciaSqftRate:0,gutterRate:0,gutterSqftRate:0,roofEdgeDifficulty:1.25,trimPrice:3,doorSidePrice:75,trimReferenceWidth:4,paintCost:55,paintCoverage:300,sprayCoverage:225,applicationMethod:'Brush and roll',sprayPercent:50,paintBrand:'Sherwin-Williams',paintUse:'Interior',paintProduct:'',paintSheen:'',paintSku:'',paintSize:'1 gallon',sundries:[],markup:1.4,finalPrice:''});
 let d;try{d=JSON.parse(localStorage.getItem('lp-v1'))||empty()}catch{d=empty()}
 if(!Array.isArray(d.sundries))d.sundries=[];
+if(d.roofEdgeDifficulty===undefined)d.roofEdgeDifficulty=1.25;
 if(!localStorage.getItem('lp-coverage-default-v1')){if(+d.paintCoverage===350)d.paintCoverage=300;localStorage.setItem('lp-coverage-default-v1','1');}
 const paintBrands=['Sherwin-Williams','Dutch Boy','Benjamin Moore','Valspar','Pittsburgh Paints & Stains','Behr','Glidden','PPG','Clark+Kensington','Rust-Oleum','Other'];
 if(!d.paintBrand)d.paintBrand='Sherwin-Williams';
