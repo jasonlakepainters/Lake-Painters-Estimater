@@ -115,7 +115,7 @@ function inspectionCheck(){
    if(+r.deckBalusters>0&&!(+r.deckBalusterWidth>0&&+r.deckBalusterDepth>0&&+r.deckBalusterHeight>0))issues.push(name+': spindle count entered without width, depth, and height.');
    if(+r.deckPosts>0&&!(+r.deckPostWidth>0&&+r.deckPostHeight>0))issues.push(name+': post count entered without dimensions.');
    if(+r.deckFasciaLf>0&&!(+r.deckFasciaWidth>0))issues.push(name+': deck edge-board length entered without painted width.');
-   if(+r.deckCoatFloor==='Yes'&&['Composite','PVC'].includes(r.deckMaterial))issues.push(name+': verify deck-coating compatibility with composite or PVC.');
+   if(r.deckCoatFloor==='Yes'&&['Composite','PVC'].includes(r.deckMaterial))issues.push(name+': verify deck-coating compatibility with composite or PVC.');
   }
   if(d.project==='Exterior'){
    if(r.kind==='Elevation'&&!(+r.length>0&&+r.width>0))issues.push(name+': elevation length or wall height is missing.');
@@ -127,7 +127,7 @@ function inspectionCheck(){
  if((d.project==='Deck'||d.project==='Exterior')&&(d.washNeeded==='Yes'||d.washNeeded==='Partial / spot clean')&&!(+d.washHours>0||(+d.washArea>0&&+d.washProductionRate>0)))issues.push('Washing selected without labor hours or a usable production rate.');
  if(d.repairs.some(r=>r.include&&/^(Pressure washing|Hand washing)/i.test(r.name||''))&&(d.washNeeded==='Yes'||d.washNeeded==='Partial / spot clean'))issues.push('Washing also appears in Additional Work; check for double charging.');
  if(!d.paintProduct&&!Object.values(d.paintAssignments||{}).some(p=>p&&p.product))issues.push('Paint or stain product still needs selection or verification.');
- for(const [i,x] of (d.sundries||[]).entries())if(+x.qty>0&&!(+x.unitCost>=0)&&x.unitCost!=='0')issues.push('Supply item '+(i+1)+' is missing a unit cost.');
+ for(const [i,x] of (d.sundries||[]).entries())if(+x.qty>0&&(x.unitCost===undefined||x.unitCost===null||x.unitCost===''))issues.push('Supply item '+(i+1)+' is missing a unit cost.');
  for(const [i,x] of (d.equipment||[]).entries())if(+x.qty>0&&x.unitCost==='')issues.push('Equipment item '+(i+1)+' has no rental/direct cost recorded; confirm zero if company-owned.');
  return [...new Set(issues)];
 }
