@@ -9,10 +9,12 @@
 </main><script>
 const steps=['Customer intake','Project & route','Measure surfaces','Paint specifications','Preparation & repairs','Photos & notes','Review & estimate'];
 let step=0;
-const empty=()=>({customer:'',phone:'',email:'',address:'',gateCode:'',doorCode:'',project:'Interior',route:'Top floor to basement, front to back',rooms:[],repairs:[],notes:'',photos:[],laborRate:90,wallRate:100,soffitRate:0,fasciaRate:0,fasciaSqftRate:0,gutterRate:0,gutterSqftRate:0,shutterRate:0,columnRate:0,porchRate:0,railingRate:0,garageDoorRate:0,roofEdgeDifficulty:1.25,trimPrice:3,doorSidePrice:75,doorFaceArea:21,trimReferenceWidth:4,paintCost:55,paintCoverage:300,sprayCoverage:225,applicationMethod:'Brush and roll',sprayPercent:50,paintBrand:'Sherwin-Williams',paintUse:'Interior',paintProduct:'',paintSheen:'',paintSku:'',paintSize:'1 gallon',sundries:[],markup:1.4,finalPrice:''});
+const empty=()=>({customer:'',phone:'',email:'',address:'',gateCode:'',doorCode:'',project:'Interior',route:'Top floor to basement, front to back',rooms:[],repairs:[],notes:'',photos:[],laborRate:90,wallRate:100,soffitRate:30,fasciaRate:0,fasciaSqftRate:25,gutterRate:30,gutterSqftRate:18,shutterRate:20,columnRate:20,porchRate:30,railingRate:20,garageDoorRate:50,roofEdgeDifficulty:1.25,trimPrice:3,doorSidePrice:75,doorFaceArea:21,trimReferenceWidth:4,paintCost:55,paintCoverage:300,sprayCoverage:225,applicationMethod:'Brush and roll',sprayPercent:50,paintBrand:'Sherwin-Williams',paintUse:'Interior',paintProduct:'',paintSheen:'',paintSku:'',paintSize:'1 gallon',sundries:[],markup:1.4,finalPrice:''});
 let d;try{d=JSON.parse(localStorage.getItem('lp-v1'))||empty()}catch{d=empty()}
 if(!Array.isArray(d.sundries))d.sundries=[];
 if(d.roofEdgeDifficulty===undefined)d.roofEdgeDifficulty=1.25;
+// One-time migration of the old unpriced zeros to conservative two-coat starting assumptions.
+try{if(!localStorage.getItem('lp-exterior-rates-v1')){const defaults={soffitRate:30,fasciaSqftRate:25,gutterRate:30,gutterSqftRate:18,shutterRate:20,columnRate:20,porchRate:30,railingRate:20,garageDoorRate:50};for(const [k,v] of Object.entries(defaults)){if(!(Number(d[k])>0))d[k]=v}localStorage.setItem('lp-exterior-rates-v1','1');localStorage.setItem('lp-v1',JSON.stringify(d));}}catch(e){}
 if(!localStorage.getItem('lp-coverage-default-v1')){if(+d.paintCoverage===350)d.paintCoverage=300;localStorage.setItem('lp-coverage-default-v1','1');}
 const paintBrands=['Sherwin-Williams','Dutch Boy','Benjamin Moore','Valspar','Pittsburgh Paints & Stains','Behr','Glidden','PPG','Clark+Kensington','Rust-Oleum','Other'];
 if(!d.paintBrand)d.paintBrand='Sherwin-Williams';
