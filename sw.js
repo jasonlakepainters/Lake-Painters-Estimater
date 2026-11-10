@@ -1,4 +1,4 @@
-const CACHE='lake-painters-v25';
+const CACHE='lake-painters-v26';
 const ASSETS=['./','./index.html','./logo.jpg','./icon.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
