@@ -12,5 +12,5 @@ assert.equal(context.safePhoto('bad" onerror="alert(1)'), '');assert.equal(conte
 const clean=context.inspectionOnly({jobId:'job-1',customer:'Example',finalPrice:1,markup:2,primerLaborProduction:1,paintCost:1,equipment:[{qty:1,unitCost:999}],sundries:[{qty:2,unitCost:999}],paintAssignments:{walls:{product:'Paint',cost:999,coverage:1,sprayCoverage:1}}});
 for(const key of ['finalPrice','markup','primerLaborProduction','paintCost'])assert(!(key in clean));assert(!('unitCost'in clean.equipment[0]));assert(!('unitCost'in clean.sundries[0]));assert(!('cost'in clean.paintAssignments.walls));assert.equal(clean.customer,'Example');
 assert.throws(()=>context.validateCloudRecord({jobId:'job-1',photos:[{data:'bad" onerror="alert(1)'}]}));assert.throws(()=>context.validateCloudRecord({jobId:'invalid id'}));
-assert(html.includes('<main hidden>'));assert(!html.includes('${p.data}'));assert(!html.includes('+p.data+'));
+assert(html.includes('<main hidden>'));assert(html.includes('src="./firebase-sync.js"')); assert(!html.includes('${p.data}'));assert(!html.includes('+p.data+'));
 console.log('PASS: pricing locks, editable measurements, nested cost stripping, photo validation and sign-in gate.');
