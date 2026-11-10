@@ -17,7 +17,10 @@ continues to work as before. Sharing uses a separate explicit button.
 5. In Authentication > Users copy each approved account's User UID.
 6. In Firestore > Data create collection `teamMembers`. Add one document for
    each approved account with document ID exactly equal to that User UID.
-   Add a field `name` with the person's display name. Do this only for the
+   Add a field `name` with the person's display name. Add string field `role`:
+   use `pricing` only for Amy, and `estimator` for Jason and Estimator.
+   Only Amy can write shared priced jobs. Other accounts submit immutable
+   inspection drafts to `inspectionSubmissions` for her review. Do this only for the
    intended three accounts. Client apps cannot create membership documents.
 7. Check Authentication > Settings > Authorized domains and add
    `jasonlakepainters.github.io` if needed.
@@ -43,3 +46,9 @@ does; use trusted devices for customer information.
 No production console settings or shared-data permissions were changed while
 preparing this branch. End-to-end verification requires console configuration
 and the existing account sign-ins. No passwords belong in this repository.
+
+Pricing-role enforcement: estimator submissions never update shared priced jobs.
+The client strips pricing settings from submissions and resets them on review.
+Firestore refuses sharedJobs writes from any account without the pricing role.
+Account roles can only be assigned by the console administrator. Verify both
+roles before release, including direct API write attempts by the estimator.

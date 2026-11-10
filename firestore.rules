@@ -5,9 +5,12 @@ service cloud.firestore {
       return request.auth != null &&
         exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid));
     }
+    function pricingManager() {
+      return teamMember() && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.role == 'pricing';
+    }
     match /sharedJobs/{jobId} {
       allow read: if teamMember();
-      allow create, update: if teamMember()
+      allow create, update: if pricingManager()
         && request.resource.data.keys().hasOnly(['payload', 'revision', 'updatedBy', 'updatedAt'])
         && request.resource.data.payload is string
         && request.resource.data.payload.size() < 950000
@@ -18,7 +21,20 @@ service cloud.firestore {
           || (exists(/databases/$(database)/documents/sharedJobs/$(jobId)) && request.resource.data.revision == resource.data.revision + 1));
       allow delete: if false;
     }
+    match /inspectionSubmissions/{submissionId} {
+      allow read: if teamMember();
+      allow create: if teamMember()
+        && request.resource.data.keys().hasOnly(['payload', 'submittedBy', 'submittedAt'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() < 950000
+        && request.resource.data.submittedBy == request.auth.uid
+        && request.resource.data.submittedAt == request.time;
+      allow update, delete: if false;
+    }
     // Membership is provisioned only by the project administrator in the console.
-    match /teamMembers/{uid} { allow read, write: if false; }
+    match /teamMembers/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
   }
 }
