@@ -456,7 +456,7 @@ function newInspection(){
 }
 function emailAmy(){
  let email='';try{email=localStorage.getItem('lp-amy-email')||''}catch(e){}
- if(!email){email=prompt("Enter Amy's email address. This will be remembered on this device:",'')||'';email=email.trim();if(!email)return;if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){alert('Please enter a valid email address.');return}try{localStorage.setItem('lp-amy-email',email)}catch(e){}}
+ if(!email){email=prompt("Enter Amy's email address. This will be remembered on this device:",'')||'';email=email.trim();if(!email)return;if(!email.includes('@')||!email.split('@')[1]?.includes('.')||email.includes(' ')){alert('Please enter a valid email address.');return}try{localStorage.setItem('lp-amy-email',email)}catch(e){}}
  const subject='Lake Painters internal inspection — '+(d.customer||'Customer');
  const body=report(),link='mailto:'+encodeURIComponent(email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
  if(link.length>7000){alert('This report is too large for a reliable prefilled email. Use Share report and choose Mail to attach the full report.');shareReport();return}
