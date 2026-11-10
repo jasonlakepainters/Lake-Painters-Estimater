@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function teamMember() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.active == true
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.customerAccess == true
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.role in ['pricing', 'administrator', 'estimator'];
+    }
+    function pricingManager() {
+      return teamMember() && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.role == 'pricing';
+    }
+    match /sharedJobs/{jobId} {
+      allow read: if teamMember();
+      allow create, update: if pricingManager()
+        && request.resource.data.keys().hasOnly(['payload', 'revision', 'updatedBy', 'updatedAt'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() < 950000
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.revision is int
+        && ((!exists(/databases/$(database)/documents/sharedJobs/$(jobId)) && request.resource.data.revision == 1)
+          || (exists(/databases/$(database)/documents/sharedJobs/$(jobId)) && request.resource.data.revision == resource.data.revision + 1));
+      allow delete: if false;
+    }
+    match /inspectionSubmissions/{submissionId} {
+      allow read: if teamMember();
+      allow create: if teamMember()
+        && request.resource.data.keys().hasOnly(['payload', 'submittedBy', 'submittedAt'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() < 950000
+        && request.resource.data.submittedBy == request.auth.uid
+        && request.resource.data.submittedAt == request.time;
+      allow update, delete: if false;
+    }
+    // Membership is provisioned only by the project administrator in the console.
+    match /teamMembers/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+  }
+}
