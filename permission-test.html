@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lake Painters — live permission check</title>
+<style>body{font:17px system-ui;background:#f4f7f8;color:#173247;max-width:780px;margin:30px auto;padding:20px}section{background:white;border:1px solid #ccdce4;border-radius:12px;padding:20px;margin:16px 0}label{display:block;margin:12px 0}input{display:block;padding:10px;width:95%;font:inherit}button{background:#083b59;color:white;border:0;border-radius:8px;padding:12px;font:inherit;cursor:pointer}button:disabled{opacity:.5}pre{white-space:pre-wrap;overflow-wrap:anywhere}.fail{color:#a11}.pass{color:#175f39}</style>
+<h1>Live Firebase permission check</h1><p>This separate page tests the published database rules. It does not publish or modify the estimator.</p>
+<section><strong>What this test does</strong><p>Uses no real customer data. Creates two clearly labeled dummy priced jobs and one dummy inspection submission. No customer searches, role edits or rule changes. Passwords go to Firebase Authentication and stay out of the test report. Sign-in sessions are held only in memory.</p><p>After testing, remove the listed dummy documents through the Firebase console. Client deletion is intentionally blocked by the rules.</p><p>Use your own trusted computer. Close this page when finished.</p></section>
+<section><h2 id="step">1. Check anonymous access</h2><p id="message">Click Start to verify that a signed-out user cannot read or create a job.</p><form id="credentials" hidden autocomplete="off"><label>Email<input id="email" type="email" required autocomplete="off"></label><label>Password<input id="password" type="password" required autocomplete="off"></label></form><button id="run" disabled>Loading Firebase…</button><p id="status" role="status"></p></section>
+<section><h2>Results</h2><pre id="results"></pre><h3>Test document paths</h3><pre id="paths"></pre><button id="download" hidden>Download results</button></section>
+<script type="module">
+import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
+import { initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+import { getFirestore, doc, getDocFromServer, setDoc, serverTimestamp, terminate } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+const config={apiKey:'AIzaSyC2uveIo8Vg7JSVVQH9n28vjtxWWKGTYek',authDomain:'lake-painters-field-estimator.firebaseapp.com',projectId:'lake-painters-field-estimator',storageBucket:'lake-painters-field-estimator.firebasestorage.app',messagingSenderId:'710911998975',appId:'1:710911998975:web:19544571c267e4c7a905ca'};
+const $=id=>document.getElementById(id),runId='permission-test-'+crypto.randomUUID();
+const app=initializeApp(config,'live-check-'+runId),auth=initializeAuth(app,{persistence:inMemoryPersistence}),db=getFirestore(app);
+let phase=0,checks=0,failed=false;const seen=new Set(),lines=[];
+const names=['Anonymous','Jason','Amy','Estimator'];
+const paths={jason:'sharedJobs/'+runId+'-jason',amy:'sharedJobs/'+runId+'-amy',estimator:'sharedJobs/'+runId+'-estimator',submission:'inspectionSubmissions/'+runId+'-submission'};
+$('paths').textContent=Object.values(paths).join('\n');
+function ref(path){if(!Object.values(paths).includes(path))throw Error('Refusing a non-test document path.');return doc(db,path);}
+function log(s){lines.push(s);$('results').textContent=lines.join('\n');}
+async function denied(label,operation){try{await operation();throw Error(label+': access unexpectedly allowed.');}catch(e){if(e.code!=='permission-denied')throw e;checks++;log('PASS — '+label+' blocked');}}
+async function allowed(label,operation){await operation();checks++;log('PASS — '+label);}
+function dummy(uid,revision=1){return {payload:JSON.stringify({jobId:'job-'+runId,customer:'PERMISSION TEST — NO CUSTOMER',rooms:[],repairs:[],photos:[],pricingMode:'separate70',laborRate:70,markup:1.4,finalPrice:100,wallRate:100,primerLaborProduction:200,paintCost:55,equipment:[{name:'TEST',unitCost:10}],sundries:[{name:'TEST',unitCost:1}]}),revision,updatedBy:uid,updatedAt:serverTimestamp()};}
+async function account(){const password=$('password').value;try{const result=await signInWithEmailAndPassword(auth,$('email').value.trim(),password);if(seen.has(result.user.uid))throw Error('Each stage must use a different account.');const membership=await getDocFromServer(doc(db,'teamMembers',result.user.uid));const m=membership.exists()?membership.data():{};if(m.role!==(phase===3?'estimator':'pricing')||m.active!==true||m.customerAccess!==true)throw Error('Account needs the expected role, active=true and customerAccess=true.');seen.add(result.user.uid);return result.user.uid;}finally{$('password').value='';}}
+$('run').onclick=async()=>{
+ $('run').disabled=true;$('status').textContent='Running checks…';
+ try{
+  if(phase===0){await denied('Anonymous customer read',()=>getDocFromServer(ref(paths.jason)));await denied('Anonymous priced-job creation',()=>setDoc(ref(paths.estimator),dummy('anonymous')));}
+  else{
+   const uid=await account();
+   if(phase===1||phase===2){const path=phase===1?paths.jason:paths.amy;await allowed(names[phase]+' creates a dummy priced job',()=>setDoc(ref(path),dummy(uid)));await allowed(names[phase]+' reads dummy customer data',async()=>{const r=await getDocFromServer(ref(paths.jason));if(!r.exists())throw Error('Dummy job missing.');});await allowed(names[phase]+' updates dummy pricing and costs',()=>setDoc(ref(path),dummy(uid,2)));}
+   else{
+    await allowed('Estimator reads authorized dummy job',async()=>{if(!(await getDocFromServer(ref(paths.jason))).exists())throw Error('Dummy job missing.');});
+    await denied('Estimator creates priced job',()=>setDoc(ref(paths.estimator),dummy(uid)));
+    await denied('Estimator changes pricing, markup, production and material/equipment costs',()=>setDoc(ref(paths.jason),dummy(uid,3)));
+    await allowed('Estimator submits dummy inspection for review',()=>setDoc(ref(paths.submission),{payload:JSON.stringify({jobId:'job-'+runId,customer:'PERMISSION TEST — NO CUSTOMER',rooms:[],repairs:[],photos:[]}),submittedBy:uid,submittedAt:serverTimestamp()}));
+   }
+  }
+  await signOut(auth);phase++;$('credentials').reset();
+  if(phase===4){$('step').textContent='Live checks complete';$('credentials').hidden=true;$('run').hidden=true;$('status').textContent=checks+' checks passed. No app has been released. Remove the dummy records through the Firebase console.';log('COMPLETE — '+checks+' live checks passed; accounts signed out.');$('download').hidden=false;await terminate(db);await deleteApp(app);return;}
+  $('step').textContent=(phase+1)+'. Sign in as '+names[phase];$('message').textContent='Enter the existing '+names[phase]+' Firebase account. Use a different account at each stage.';$('credentials').hidden=false;$('run').textContent='Test '+names[phase];$('status').textContent='Previous checks passed; signed out.';
+ }catch(e){failed=true;try{await signOut(auth)}catch{}$('status').textContent='STOP — '+(e.code?.startsWith('auth/')?'Firebase sign-in failed. Check the account, password and authorized-domain settings.':e.message||e.code||'Test failed.');log('STOP — test did not pass. Do not release the app.');$('download').hidden=false;$('run').textContent='Reload page before retrying';}
+ finally{$('password').value='';$('run').disabled=failed;}
+};
+$('download').onclick=()=>{const content='Lake Painters live Firebase permission check\n'+new Date().toISOString()+'\n'+lines.join('\n')+'\n\nTest paths:\n'+Object.values(paths).join('\n');const url=URL.createObjectURL(new Blob([content],{type:'text/plain'}));const a=document.createElement('a');a.href=url;a.download='lake-painters-live-permission-results.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('run').disabled=false;$('run').textContent='Start anonymous checks';
+</script></html>
