@@ -3,7 +3,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function teamMember() {
       return request.auth != null &&
-        exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid));
+        exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.active == true
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.customerAccess == true
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.role in ['pricing', 'administrator', 'estimator'];
     }
     function pricingManager() {
       return teamMember() && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.role == 'pricing';

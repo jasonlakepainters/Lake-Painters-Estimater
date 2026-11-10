@@ -1,0 +1,16 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+new vm.Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
+const defaults=vm.runInNewContext('('+html.match(/const empty=\(\)=>\((\{.*?\})\);/)[1]+')');
+const security=html.slice(html.indexOf('const protectedPricingKeys='),html.indexOf('function render(){'));
+const inputs=["d.laborRate=+this.value","d.markup=this.value","setAmyMarkup(this.value)","d.finalPrice=this.value","d.primerLaborProduction=this.value","updateEquipment(0,'unitCost',this.value)","updateSundry(0,'unitCost',this.value)","setPaintAssignment('walls','cost',this.value)","setPaintAssignment('walls','coverage',this.value)","d.paintCost=this.value"].map(handler=>({disabled:false,getAttribute:()=>handler}));
+const context={empty:()=>defaults,window:{lpCanEditPricing:false},document:{querySelectorAll:()=>inputs}};vm.createContext(context);vm.runInContext(security,context);
+context.lockEstimatorPricing();assert(inputs.every(x=>x.disabled));
+context.window.lpCanEditPricing=true;context.lockEstimatorPricing();assert(inputs.every(x=>!x.disabled));
+assert(!context.pricingHandler("updateSurface(0,'length',this.value)"));
+assert.equal(context.safePhoto('bad" onerror="alert(1)'), '');assert.equal(context.safePhoto('data:image/svg+xml;base64,PHN2Zz4='),'');assert.equal(context.safePhoto('https://tracker.example/image.png'),'');assert.equal(context.safePhoto('data:image/png;base64,YQ=='),'data:image/png;base64,YQ==');
+const clean=context.inspectionOnly({jobId:'job-1',customer:'Example',finalPrice:1,markup:2,primerLaborProduction:1,paintCost:1,equipment:[{qty:1,unitCost:999}],sundries:[{qty:2,unitCost:999}],paintAssignments:{walls:{product:'Paint',cost:999,coverage:1,sprayCoverage:1}}});
+for(const key of ['finalPrice','markup','primerLaborProduction','paintCost'])assert(!(key in clean));assert(!('unitCost'in clean.equipment[0]));assert(!('unitCost'in clean.sundries[0]));assert(!('cost'in clean.paintAssignments.walls));assert.equal(clean.customer,'Example');
+assert.throws(()=>context.validateCloudRecord({jobId:'job-1',photos:[{data:'bad" onerror="alert(1)'}]}));assert.throws(()=>context.validateCloudRecord({jobId:'invalid id'}));
+assert(html.includes('<main hidden>'));assert(!html.includes('${p.data}'));assert(!html.includes('+p.data+'));
+console.log('PASS: pricing locks, editable measurements, nested cost stripping, photo validation and sign-in gate.');

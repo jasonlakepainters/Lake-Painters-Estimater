@@ -1,0 +1,21 @@
+{
+  "name": "estimator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "firebase-sync.js",
+  "scripts": {
+    "test": "npm run test:app && npm run test:rules",
+    "test:app": "node tests/app-security.test.cjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-lake-painters \"node tests/firestore-security.test.mjs\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.2.0",
+    "firebase-tools": "15.35.0"
+  },
+  "private": true
+}
