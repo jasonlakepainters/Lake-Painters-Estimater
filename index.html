@@ -228,12 +228,20 @@ function sketchUndo(){d.deckSketchStrokes.pop();save();sketchDraw()}
 function sketchClear(){if(!confirm('Clear this deck sketch? The section measurements will remain.'))return;d.deckSketchStrokes=[];save();sketchDraw()}
 function sketchSetTool(tool){sketchTool=tool;const status=document.getElementById('deck-sketch-tool-status');if(status)status.textContent='Selected: '+(tool==='eraser'?'Eraser':'Pen')}
 function sketchImage(){
- if(!(d.deckSketchStrokes||[]).length)return '';
+ const lines=d.deckSketchStrokes||[];if(!lines.length)return '';
  const cv=document.createElement('canvas');cv.width=700;cv.height=420;
- const ctx=cv.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,700,420);
- // Use the normal rendering routine on a temporary canvas without changing the stored strokes.
- const original=sketchCanvas();if(!original)return '';
- const dst=cv.getContext('2d');dst.drawImage(original,0,0,700,420);
+ const ctx=cv.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,cv.width,cv.height);
+ ctx.strokeStyle='#e5edf1';ctx.lineWidth=1;
+ for(let x=0;x<=cv.width;x+=35){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,cv.height);ctx.stroke()}
+ for(let y=0;y<=cv.height;y+=35){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cv.width,y);ctx.stroke()}
+ for(const line of lines){
+  const pts=line.points||[];if(!pts.length)continue;
+  ctx.strokeStyle=line.tool==='eraser'?'#ffffff':'#0d405c';ctx.lineWidth=line.tool==='eraser'?22:3;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(pts[0][0]*cv.width,pts[0][1]*cv.height);
+  for(const p of pts.slice(1))ctx.lineTo(p[0]*cv.width,p[1]*cv.height);
+  if(pts.length===1)ctx.lineTo(pts[0][0]*cv.width+.1,pts[0][1]*cv.height+.1);
+  ctx.stroke();
+ }
  return cv.toDataURL('image/png');
 }
 function deckScreen(){
