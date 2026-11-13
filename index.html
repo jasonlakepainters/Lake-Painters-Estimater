@@ -420,6 +420,7 @@ function calc(){
   }
   const entries=[['other',Math.max(0,+r.trim||0),Math.max(0,+r.trimWidth||baseWidth)],...trimTypes.map(([key])=>[key,Math.max(0,+r['trim_'+key+'_lf']||0),Math.max(0,+r['trim_'+key+'_width']||baseWidth)])];
   for(const [key,ft,width] of entries){
+   if(key!=='other'&&ft>0&&!(+r['trim_'+key+'_width']>0))warnings.push(location+': '+trimBreakdown[key].label+' width not entered; using '+baseWidth+'-inch reference width for preliminary estimate');
    const squareFeet=ft*width/12,charge=ft*baseTrimRate*(width/baseWidth)*factor;
    const labor=ft*factor*Math.max(1,width/baseWidth)/trimProductionRate;
    trim+=ft;sections.trim+=squareFeet;materialCoats.trim+=squareFeet*coats;
