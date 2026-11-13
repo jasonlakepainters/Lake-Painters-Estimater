@@ -43,7 +43,7 @@ function initGoogleAddress(){
   const mount=document.getElementById('google-address-host');if(mount)mount.replaceChildren(widget);
  }).catch(()=>{const status=document.getElementById('google-address-status');if(status)status.textContent='Google suggestions unavailable; manual entry still works.'});
 }
-const RENTAL_RATES={'Festool HEPA vacuum':20,'Festool compatible drywall sander':15,'Wallpaper steamer':10,'Commercial drywall sander':10,'HEPA dust extractor':10,'Air scrubber':10,'Dehumidifier':10,'Other specialty equipment':10};
+const RENTAL_RATES={'Festool HEPA vacuum':20,'Festool compatible drywall sander':15,'Wallpaper steamer':10,'Commercial drywall sander':10,'HEPA dust extractor':10,'Air scrubber':10,'Dehumidifier':10,'Scaffolding':10,'Step ladder':10,'Extension ladder':10,'Multi-position ladder':10,'Airless paint sprayer':10,'HVLP paint sprayer':10,'Additional paint sprayer':10,'Other specialty equipment':10};
 function rentalRate(item){return Math.max(0,+item.rate||0)}
 function rentalCharge(item){return Math.max(0,+item.qty||0)*Math.max(0,+item.hours||0)*rentalRate(item)}
 function addSpecialtyRental(){d.specialtyRentals.push({name:'Festool HEPA vacuum',qty:1,hours:'',rate:20});save();render()}
