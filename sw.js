@@ -1,4 +1,4 @@
-const CACHE='lake-painters-v298';
+const CACHE='lake-painters-v299';
 const ASSETS=['./','./index.html','./logo.jpg','./icon.png','./manifest.webmanifest','./firebase-sync.js'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
